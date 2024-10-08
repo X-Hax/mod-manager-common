@@ -126,7 +126,10 @@ namespace IniFile
 				string membername = member.Name;
 				if (Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true) != null)
 					membername = ((IniNameAttribute)Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true)).Name;
-				object item;
+                string membergroup = null;
+                if (Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true) != null)
+                    membergroup = ((IniNameAttribute)Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true)).Group;
+                object item;
 				object defval;
 				switch (member.MemberType)
 				{
@@ -146,7 +149,18 @@ namespace IniFile
 					default:
 						continue;
 				}
-				DefaultValueAttribute defattr = (DefaultValueAttribute)Attribute.GetCustomAttribute(member, typeof(DefaultValueAttribute), true);
+
+                if (rootObject && item == null && defval == null)
+                    continue;
+
+                if (membergroup == null)
+                    membergroup = newgroup;
+                else if (value != null && item != null && item != DBNull.Value && !ini.ContainsKey(membergroup))
+                {
+                    ini.Add(membergroup, new IniGroup());
+                }
+
+                DefaultValueAttribute defattr = (DefaultValueAttribute)Attribute.GetCustomAttribute(member, typeof(DefaultValueAttribute), true);
 				if (defattr != null)
 					defval = defattr.Value;
 				if (Attribute.GetCustomAttribute(member, typeof(IniAlwaysIncludeAttribute), true) != null || !object.Equals(item, defval))
@@ -159,7 +173,7 @@ namespace IniFile
 					TypeConverterAttribute convattr = (TypeConverterAttribute)Attribute.GetCustomAttribute(member, typeof(TypeConverterAttribute));
 					if (convattr != null)
 						conv = (TypeConverter)Activator.CreateInstance(Type.GetType(convattr.ConverterTypeName));
-					SerializeInternal(membername, item, ini, newgroup, false, settings, conv);
+					SerializeInternal(membername, item, ini, membergroup, false, settings, conv);
 				}
 			}
 		}
@@ -431,7 +445,12 @@ namespace IniFile
 				string membername = member.Name;
 				if (Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true) != null)
 					membername = ((IniNameAttribute)Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true)).Name;
-				IniCollectionSettings colset = defaultCollectionSettings;
+                string itemGroupName = null;
+                if (Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true) != null)
+                    itemGroupName = ((IniNameAttribute)Attribute.GetCustomAttribute(member, typeof(IniNameAttribute), true)).Group;
+                if (itemGroupName == null || string.IsNullOrEmpty(fullname) == false)
+                    itemGroupName = fullname;
+                IniCollectionSettings colset = defaultCollectionSettings;
 				IniCollectionAttribute colattr = (IniCollectionAttribute)Attribute.GetCustomAttribute(member, typeof(IniCollectionAttribute), true);
 				if (colattr != null)
 					colset = colattr.Settings;
@@ -453,7 +472,7 @@ namespace IniFile
 						DefaultValueAttribute defattr = (DefaultValueAttribute)Attribute.GetCustomAttribute(member, typeof(DefaultValueAttribute), true);
 						if (defattr != null)
 							defval = defattr.Value;
-						field.SetValue(result, DeserializeInternal(membername, field.FieldType, defval, ini, fullname, false, colset, conv));
+						field.SetValue(result, DeserializeInternal(membername, field.FieldType, defval, ini, itemGroupName, false, colset, conv));
 						break;
 					case MemberTypes.Property:
 						PropertyInfo property = (PropertyInfo)member;
@@ -468,7 +487,7 @@ namespace IniFile
 						defattr = (DefaultValueAttribute)Attribute.GetCustomAttribute(member, typeof(DefaultValueAttribute), true);
 						if (defattr != null)
 							defval = defattr.Value;
-						object propval = DeserializeInternal(membername, property.PropertyType, defval, ini, fullname, false, colset, conv);
+						object propval = DeserializeInternal(membername, property.PropertyType, defval, ini, itemGroupName, false, colset, conv);
 						MethodInfo setmethod = property.GetSetMethod();
 						if (setmethod == null) continue;
 						setmethod.Invoke(result, new object[] { propval });
@@ -480,11 +499,11 @@ namespace IniFile
 				{
 					case MemberTypes.Field:
 						FieldInfo field = (FieldInfo)collection;
-						field.SetValue(result, DeserializeInternal(collection.Name, field.FieldType, field.FieldType.GetDefaultValue(), ini, fullname, false, ((IniCollectionAttribute)Attribute.GetCustomAttribute(collection, typeof(IniCollectionAttribute), true)).Settings, null));
+						field.SetValue(result, DeserializeInternal(collection.Name, field.FieldType, field.FieldType.GetDefaultValue(), ini, groupName, false, ((IniCollectionAttribute)Attribute.GetCustomAttribute(collection, typeof(IniCollectionAttribute), true)).Settings, null));
 						break;
 					case MemberTypes.Property:
 						PropertyInfo property = (PropertyInfo)collection;
-						object propval = DeserializeInternal(collection.Name, property.PropertyType, property.PropertyType.GetDefaultValue(), ini, fullname, false, ((IniCollectionAttribute)Attribute.GetCustomAttribute(collection, typeof(IniCollectionAttribute), true)).Settings, null);
+						object propval = DeserializeInternal(collection.Name, property.PropertyType, property.PropertyType.GetDefaultValue(), ini, groupName, false, ((IniCollectionAttribute)Attribute.GetCustomAttribute(collection, typeof(IniCollectionAttribute), true)).Settings, null);
 						MethodInfo setmethod = property.GetSetMethod();
 						if (setmethod == null) break;
 						setmethod.Invoke(result, new object[] { propval });
@@ -953,8 +972,15 @@ namespace IniFile
 			Name = name;
 		}
 
-		public string Name { get; private set; }
-	}
+        public IniNameAttribute(string group, string name)
+        {
+            Group = group;
+            Name = name;
+        }
+
+        public string Name { get; private set; }
+        public string Group { get; private set; }
+    }
 
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
 	public sealed class IniAlwaysIncludeAttribute : Attribute { }
