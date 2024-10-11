@@ -389,6 +389,13 @@ namespace ModManagerCommon
 
 							info.Refresh();
 
+							if (cancelArgs.Cancel || downloadArgs?.Cancel == true)
+							{ 
+									if (File.Exists(i.Current.FilePath))
+										File.Delete(i.Current.FilePath);
+									return;
+							}
+
 							if (info.Length != i.Current.FileSize)
 							{
 								throw new Exception(string.Format("Size of downloaded file \"{0}\" ({1}) differs from manifest ({2}).",
