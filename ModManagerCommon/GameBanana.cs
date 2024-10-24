@@ -12,15 +12,13 @@ namespace ModManagerCommon
         public string Name { get; set; }
         [JsonProperty("Owner().name")]
         public string OwnerName { get; set; }
-        [JsonProperty("screenshots")]
-        public string ScreenshotsRaw { get; set; }
         [JsonProperty("text")]
         public string Body { get; set; }
         [JsonProperty("description")]
         public string Subtitle { get; set; }
         [JsonProperty("Credits().aAuthorsAndGroups()")]
         public GameBananaCreditGroups Credits { get; set; }
-        [JsonProperty("Url().sGetProfileUrl()")]
+        [JsonProperty("Url().sProfileUrl()")]
         public string ProfileUrl { get; set; }
         [JsonProperty("Updates().bSubmissionHasUpdates()")]
         public bool HasUpdates { get; set; }
