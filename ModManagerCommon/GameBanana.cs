@@ -50,6 +50,8 @@ namespace ModManagerCommon
         public long DateAddedInt { get; set; }
         [JsonIgnore]
         public DateTime DateAdded { get { return epoch.AddSeconds(DateAddedInt); } }
+        [JsonProperty("_sVersion")]
+        public string Version { get; set; }
     }
 
     public class GameBananaItemUpdateChange

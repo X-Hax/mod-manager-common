@@ -166,7 +166,7 @@ namespace ModManagerCommon
 					// No updates available.
 					return null;
 				}
-			}
+			}			
 
 			string body = string.Join(Environment.NewLine, latestUpdate.Changes.Select(a => a.Category + ": " + a.Text)) + Environment.NewLine + latestUpdate.Text;
 
@@ -176,7 +176,7 @@ namespace ModManagerCommon
 			{
 				HomePage   = gbi.ProfileUrl,
 				Name       = latestUpdate.Title,
-				Version    = latestUpdate.Title,
+				Version    = latestUpdate.Version,
 				Published  = latestUpdate.DateAdded,
 				Updated    = latestUpdate.DateAdded,
 				ReleaseUrl = gbi.ProfileUrl
