@@ -252,6 +252,7 @@ namespace ModManagerCommon
 					if (!File.Exists(newManPath) || !File.Exists(oldManPath))
 					{
 						CopyDirectory(new DirectoryInfo(workDir), Directory.CreateDirectory(Folder));
+						removeReadOnly(new DirectoryInfo(dataDir));
 						Directory.Delete(dataDir, true);
 
 						if (File.Exists(filePath))
