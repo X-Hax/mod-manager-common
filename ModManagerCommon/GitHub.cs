@@ -43,4 +43,30 @@ namespace ModManagerCommon
 		[JsonProperty("body")]
 		public string Body { get; set; }
 	}
+
+	public class GitHubRepoOwnerData
+	{
+        [JsonProperty("login")]
+        public string Name { get; set; }
+        [JsonProperty("id")]
+        public long ID { get; set; }
+    }
+
+	public class GitHubRepo
+	{
+        [JsonProperty("id")]
+        public long ID { get; set; }
+        [JsonProperty("node_id")]
+        public string NodeID { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        [JsonProperty("full_name")]
+        public string FullName { get; set; }
+        [JsonProperty("owner")]
+        public GitHubRepoOwnerData Owner { get; set; }
+        [JsonProperty("html_url")]
+        public string URL { get; set; }
+        [JsonProperty("description")]
+        public string Description { get; set; }
+    }
 }
